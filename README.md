@@ -1,6 +1,6 @@
 # FlapIO
 
-![FlapIO banner](assets/banner.jpeg)
+![FlapIO banner](banner.jpeg)
 
 > **Status: in development.** This README describes the project as planned — code and results below will be filled in as each part is built.
 
