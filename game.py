@@ -1,84 +1,92 @@
-import pygame
+"""FlappyBirdGame: Bird + Pipes + scoring + game over.
+
+Headless by default (no window) so AI training is fast.
+The window is only created the first time render() is called.
+"""
 import random
+import pygame
+from settings import (SCREEN_WIDTH, SCREEN_HEIGHT, FPS, SPAWN_INTERVAL,
+                      PIPE_WIDTH, SKY_BLUE, WHITE)
+from game.bird import Bird
+from game.pipe import Pipe
 
-# ---------------- SETTINGS ----------------
-SCREEN_WIDTH = 400
-SCREEN_HEIGHT = 600
-PIPE_WIDTH = 70
-PIPE_GAP = 150          # space between top and bottom pipe
-PIPE_SPEED = 3          # how fast pipes move left
 
-class Pipe:
-    def __init__(self, x):
-        self.x = x  # horizontal position of the pipe
+class FlappyBirdGame:
+    def __init__(self, seed=None):
+        self.rng = random.Random(seed)
+        self.screen = None
+        self.clock = None
+        self.font = None
+        self.reset()
 
-        # pick a random height for the gap's top edge
-        self.gap_y = random.randint(100, SCREEN_HEIGHT - 100 - PIPE_GAP)
-
-        # top pipe: from top of screen (0) down to gap_y
-        self.top_rect = pygame.Rect(self.x, 0, PIPE_WIDTH, self.gap_y)
-
-        # bottom pipe: starts after the gap, goes to bottom of screen
-        self.bottom_rect = pygame.Rect(
-            self.x,
-            self.gap_y + PIPE_GAP,
-            PIPE_WIDTH,
-            SCREEN_HEIGHT - (self.gap_y + PIPE_GAP)
-        )
-
-        self.passed = False  # used later for scoring
+    # ------------------------------------------------------------ game logic
+    def reset(self, seed=None):
+        if seed is not None:
+            self.rng = random.Random(seed)
+        self.bird = Bird()
+        self.pipes = [Pipe(SCREEN_WIDTH, self.rng)]  # first pipe starts off-screen right
+        self.score = 0
+        self.game_over = False
+        self.frame_count = 0
 
     def update(self):
-        # move both pipes left every frame
-        self.x -= PIPE_SPEED
-        self.top_rect.x = self.x
-        self.bottom_rect.x = self.x
+        """Advance the game by exactly one frame."""
+        if self.game_over:
+            return
+        self.frame_count += 1
+        self.bird.update()
 
-    def draw(self, screen):
-        # draw both pipes as green rectangles
-        pygame.draw.rect(screen, (0, 200, 0), self.top_rect)
-        pygame.draw.rect(screen, (0, 200, 0), self.bottom_rect)
+        if self.frame_count % SPAWN_INTERVAL == 0:
+            self.pipes.append(Pipe(SCREEN_WIDTH, self.rng))
 
-    def off_screen(self):
-        # true once the pipe has moved fully off the left edge
-        return self.x + PIPE_WIDTH < 0
+        for pipe in self.pipes:
+            pipe.update()
+            if not pipe.passed and pipe.x + PIPE_WIDTH < self.bird.x:
+                pipe.passed = True
+                self.score += 1
+            if pipe.collide(self.bird.rect):
+                self.game_over = True
 
-    def collide(self, bird_rect):
-        # returns True if the bird's rectangle touches either pipe
-        return self.top_rect.colliderect(bird_rect) or self.bottom_rect.colliderect(bird_rect)
+        self.pipes = [p for p in self.pipes if not p.off_screen()]
 
+        if self.bird.hit_bounds():
+            self.game_over = True
 
-# ---------------- MAIN LOOP EXAMPLE ----------------
-pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-clock = pygame.time.Clock()
+    # ------------------------------------------------------------- rendering
+    def _init_display(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption("FlapIO")
+        self.clock = pygame.time.Clock()
+        self.font = pygame.font.SysFont(None, 48)
 
-pipes = [Pipe(SCREEN_WIDTH)]   # start with one pipe off-screen to the right
-SPAWN_INTERVAL = 90            # frames between new pipes
-frame_count = 0
+    def render(self, fps=FPS):
+        if self.screen is None:
+            self._init_display()
+        pygame.event.pump()  # keeps the window responsive
 
-running = True
-while running:
-    clock.tick(60)  # 60 frames per second
-    frame_count += 1
+        self.screen.fill(SKY_BLUE)
+        for pipe in self.pipes:
+            pipe.draw(self.screen)
+        self.bird.draw(self.screen)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        text = self.font.render(str(self.score), True, WHITE)
+        self.screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, 20))
 
-    # spawn a new pipe every SPAWN_INTERVAL frames
-    if frame_count % SPAWN_INTERVAL == 0:
-        pipes.append(Pipe(SCREEN_WIDTH))
+        if self.game_over:
+            msg = self.font.render("Game Over", True, WHITE)
+            self.screen.blit(msg, (SCREEN_WIDTH // 2 - msg.get_width() // 2,
+                                   SCREEN_HEIGHT // 2 - 30))
+            small = pygame.font.SysFont(None, 28).render(
+                "SPACE = restart", True, WHITE)
+            self.screen.blit(small, (SCREEN_WIDTH // 2 - small.get_width() // 2,
+                                     SCREEN_HEIGHT // 2 + 10))
 
-    # update pipes and remove ones that left the screen
-    for pipe in pipes:
-        pipe.update()
-    pipes = [p for p in pipes if not p.off_screen()]
+        pygame.display.flip()
+        if fps:
+            self.clock.tick(fps)
 
-    # draw everything
-    screen.fill((135, 206, 235))  # sky blue background
-    for pipe in pipes:
-        pipe.draw(screen)
-    pygame.display.flip()
-
-pygame.quit()
+    def close(self):
+        if self.screen is not None:
+            pygame.quit()
+            self.screen = None
