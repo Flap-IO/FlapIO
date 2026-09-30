@@ -169,11 +169,11 @@ It exposes the same style of API as the PPO agent: `predict(obs)`, `save()`, `lo
 
 Built as a 3-person Advanced Programming Lab project:
 
-| Role                             | Responsibility                                                                                          | Status |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------- | ------ |
-| Game Developer                   | `FlappyBirdGame`, `Bird`, `Pipe`: core Pygame implementation                                            | ✅ done |
-| RL Environment & ML/Training Engineer | `FlappyBirdEnv` (Gymnasium wrapper, observation/action space, reward shaping) and the PPO agent (training loop, policy network, hyperparameter tuning, checkpointing) | ✅ done |
-| Evaluation & Documentation       | Demo recording, reward-curve analysis, report, presentation                                             | 🚧 pending |
+| Role | Name | Responsibility | Status |
+| ---- | ---- | -------------- | ------ |
+| Game Developer | NISHRIT KASHYAP (24EA4CS28) | `FlappyBirdGame`, `Bird`, `Pipe`: core Pygame implementation | ✅ done |
+| RL Environment & ML/Training Engineer | YUVRAJJIT BARUAH (24EA4CS45) | `FlappyBirdEnv` (Gymnasium wrapper, observation/action space, reward shaping) and the PPO agent (training loop, policy network, hyperparameter tuning, checkpointing) | ✅ done |
+| Evaluation & Documentation | SHILPI RAJKUMARI (24EA4CS39) | Demo recording, reward-curve analysis, report, presentation | 🚧 pending |
 
 ## Roadmap
 
