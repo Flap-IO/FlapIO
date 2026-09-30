@@ -16,13 +16,9 @@ import gymnasium as gym
 from gymnasium import spaces
 
 from game.flappy_game import FlappyBirdGame
-
-# ---- numbers copied from the game (CHANGE these if your game uses others) ----
-SCREEN_WIDTH = 400
-SCREEN_HEIGHT = 600
-PIPE_WIDTH = 70
-PIPE_GAP = 150        # gap_y is assumed to be the TOP edge of the gap
-BIRD_X = 80           # bird's fixed horizontal position
+# numbers now come straight from settings.py so game and env can never disagree
+from settings import (SCREEN_WIDTH, SCREEN_HEIGHT, PIPE_WIDTH, PIPE_GAP,
+                      BIRD_START_X as BIRD_X)   # gap_y = TOP edge of the gap
 MAX_SPEED = 10        # used only to scale velocity into about -1..1
 
 # ---- reward numbers (easy to tune) ----
@@ -52,7 +48,7 @@ class FlappyBirdEnv(gym.Env):
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        self.game.reset()
+        self.game.reset(seed=seed)   # same seed -> same pipes (reproducible)
         self.steps = 0
         self.last_score = self.game.score
         return self._get_obs(), {}
