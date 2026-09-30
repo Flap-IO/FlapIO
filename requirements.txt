@@ -1,0 +1,8 @@
+pygame
+gymnasium
+stable-baselines3[extra]
+torch
+numpy
+tensorboard
+scikit-learn
+joblib
