@@ -1,19 +1,3 @@
-"""Supervised-learning (behaviour cloning) AI for FlapIO.
-
-Idea: a simple rule-based "teacher" plays the game and we record
-    (observation, teacher's action)  pairs.
-A neural network (scikit-learn MLP classifier) is then trained to predict the
-teacher's action from the 4-number observation used by FlappyBirdEnv.
-
-Optional DAgger rounds: let the *trained* model play, ask the teacher what it
-would have done in the states the model visited, add that data and retrain.
-This fixes the classic "model drifts into states the teacher never showed" problem.
-
-Commands (run from the repo root):
-    python supervised_learning.py train    --samples 60000 --dagger 3
-    python supervised_learning.py evaluate --episodes 10
-    python supervised_learning.py play                  # watch the AI in a window
-"""
 import argparse
 import os
 import random
