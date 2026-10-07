@@ -17,7 +17,7 @@ DATA_PATH = "data/expert_data.npz"
 
 # --------------------------------------------------------------- the teacher
 def expert_action(env, margin=15):
-    """Rule-based teacher: flap when the bird is falling below the gap centre."""
+
     game = env.game
     pipe = env._next_pipe()
     gap_center = pipe.gap_y + PIPE_GAP / 2
@@ -27,7 +27,6 @@ def expert_action(env, margin=15):
 
 # ------------------------------------------------------------ the AI (model)
 class SupervisedAgent:
-    """Same style of API as the PPO agent: predict / save / load."""
 
     def __init__(self, model=None):
         self.model = model
@@ -46,12 +45,7 @@ class SupervisedAgent:
 
 # ------------------------------------------------------------ data collection
 def collect(env, n_samples, policy=None, noise=0.03, max_steps=2000):
-    """Play until n_samples are recorded. Labels always come from the teacher.
-
-    policy=None  -> the teacher drives (with `noise` random actions so the data
-                    also contains recovery situations).
-    policy=agent -> the trained model drives (used for DAgger).
-    """
+    
     X, y, scores = [], [], []
     while len(X) < n_samples:
         obs, _ = env.reset()
@@ -74,7 +68,6 @@ def collect(env, n_samples, policy=None, noise=0.03, max_steps=2000):
 
 # ------------------------------------------------------------------ training
 def fit(X, y):
-    """Train the classifier. Flaps are rare (~1 in 10 frames) so we oversample them."""
     X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=0, stratify=y)
     flap_idx = np.where(y_tr == 1)[0]
     extra = np.random.choice(flap_idx, size=max(0, (y_tr == 0).sum() - len(flap_idx)))
